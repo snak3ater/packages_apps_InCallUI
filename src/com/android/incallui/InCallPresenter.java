@@ -274,9 +274,6 @@ public class InCallPresenter implements CallList.Listener {
             if (!mCallUiInBackground) {
                 CallCommandClient.getInstance().setSystemBarNavigationEnabled(false);
             }
-            if (mAccelerometerListener != null) {
-                mAccelerometerListener.enableSensor(true);
-            }
         }
 
         for (IncomingCallListener listener : mIncomingCallListeners) {
