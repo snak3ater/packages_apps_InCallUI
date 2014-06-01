@@ -55,6 +55,7 @@ public class InCallActivity extends Activity {
 
     /** Use to pass 'showDialpad' from {@link #onNewIntent} to {@link #onResume} */
     private boolean mShowDialpadRequested;
+    private boolean mConferenceManagerShown;
 
     @Override
     protected void onCreate(Bundle icicle) {
@@ -103,6 +104,7 @@ public class InCallActivity extends Activity {
             mCallButtonFragment.displayDialpad(true);
             mShowDialpadRequested = false;
         }
+        updateSystemBarTranslucency();
     }
 
     // onPause is guaranteed to be called when the InCallActivity goes
@@ -213,6 +215,8 @@ public class InCallActivity extends Activity {
             return;
         } else if (mConferenceManagerFragment.isVisible()) {
             mConferenceManagerFragment.setVisible(false);
+            mConferenceManagerShown = false;
+            updateSystemBarTranslucency();
             return;
         }
 
@@ -442,7 +446,28 @@ public class InCallActivity extends Activity {
     public void displayManageConferencePanel(boolean showPanel) {
         if (showPanel) {
             mConferenceManagerFragment.setVisible(true);
+            mConferenceManagerShown = true;
+            updateSystemBarTranslucency();
         }
+    }
+
+    public void onManageConferenceDoneClicked() {
+        if (mConferenceManagerShown && !mConferenceManagerFragment.isVisible()) {
+            mConferenceManagerShown = false;
+            updateSystemBarTranslucency();
+        }
+    }
+
+    private void updateSystemBarTranslucency() {
+        final boolean doTranslucency = !mConferenceManagerShown;
+        final Window window = getWindow();
+
+        if (doTranslucency) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        }
+        window.getDecorView().requestFitSystemWindows();
     }
 
     public void showPostCharWaitDialog(int callId, String chars) {
