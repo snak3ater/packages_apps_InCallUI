@@ -23,6 +23,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,6 +66,32 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
     // Cached DisplayMetrics density.
     private float mDensity;
 
+    /**
+     * A subclass of ImageView which allows animation by LayoutTransition
+     */
+    public static class PhotoImageView extends ImageView {
+        private boolean mHasFrame = false;
+
+        public PhotoImageView(Context context, AttributeSet attrs) {
+            super(context, attrs);
+        }
+
+        @Override
+        protected boolean setFrame(int l, int t, int r, int b) {
+            boolean changed = super.setFrame(l, t, r, b);
+            mHasFrame = true;
+            return changed;
+        }
+
+        @Override
+        protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+            super.onSizeChanged(w, h, oldw, oldh);
+            // force recomputation of draw matrix
+            if (mHasFrame) {
+                setFrame(getLeft(), getTop(), getRight(), getBottom());
+            }
+        }
+    }
     @Override
     CallCardPresenter.CallCardUi getUi() {
         return this;
@@ -117,6 +144,12 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         mProviderNumber = (TextView) view.findViewById(R.id.providerAddress);
         mSupplementaryInfoContainer =
             (ViewGroup) view.findViewById(R.id.supplementary_info_container);
+
+        ViewGroup photoContainer = (ViewGroup) view.findViewById(R.id.photo_container);
+        LayoutTransition transition = photoContainer.getLayoutTransition();
+        transition.enableTransitionType(LayoutTransition.CHANGING);
+        transition.setAnimateParentHierarchy(false);
+        transition.setDuration(200);
     }
 
     @Override
