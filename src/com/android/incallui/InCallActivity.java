@@ -28,6 +28,10 @@ import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.database.ContentObserver;
+import android.net.Uri;
+import android.os.Handler;
+import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -57,6 +61,13 @@ public class InCallActivity extends Activity {
     private boolean mShowDialpadRequested;
     private boolean mConferenceManagerShown;
 
+    private ContentObserver mSettingsObserver = new ContentObserver(new Handler()) {
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            updateSettings();
+        }
+    };
+
     @Override
     protected void onCreate(Bundle icicle) {
         Log.d(this, "onCreate()...  this = " + this);
@@ -80,6 +91,12 @@ public class InCallActivity extends Activity {
         setContentView(R.layout.incall_screen);
 
         initializeInCall();
+
+        getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(Settings.System.INCOMING_CALL_STYLE),
+                false, mSettingsObserver);
+        updateSettings();
+
         Log.d(this, "onCreate(): exit");
     }
 
@@ -377,7 +394,7 @@ public class InCallActivity extends Activity {
         if (mCallButtonFragment == null) {
             mCallButtonFragment = (CallButtonFragment) getFragmentManager()
                     .findFragmentById(R.id.callButtonFragment);
-            mCallButtonFragment.getView().setVisibility(View.GONE);
+            mCallButtonFragment.setEnabled(false, false);
         }
 
         if (mCallCardFragment == null) {
@@ -550,5 +567,15 @@ public class InCallActivity extends Activity {
     private void onDialogDismissed() {
         mDialog = null;
         InCallPresenter.getInstance().onDismissDialog();
+    }
+
+    private void updateSettings() {
+        int incomingCallStyle = Settings.System.getInt(getContentResolver(),
+                Settings.System.INCOMING_CALL_STYLE,
+                Settings.System.INCOMING_CALL_STYLE_FULLSCREEN_PHOTO);
+        boolean useFullscreenCallerPhoto =
+                incomingCallStyle == Settings.System.INCOMING_CALL_STYLE_FULLSCREEN_PHOTO;
+        mCallButtonFragment.setHideMode(useFullscreenCallerPhoto ? View.GONE : View.INVISIBLE);
+        mAnswerFragment.setUseTranslucentNavigationBar(useFullscreenCallerPhoto);
     }
 }
