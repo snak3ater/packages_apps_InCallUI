@@ -249,6 +249,15 @@ public class InCallPresenter implements CallList.Listener {
         }
 
         if (isActivityStarted()) {
+            MSimTelephonyManager tm = MSimTelephonyManager.getDefault();
+
+            if (tm.getMultiSimConfiguration() == MSimTelephonyManager.MultiSimVariants.DSDA) {
+                mInCallActivity.updateDsdaTab();
+            }
+            if (newState != InCallState.DISCONNECTING) {
+                mInCallActivity.updateSystemBarTranslucency();
+            }
+
             final boolean hasCall = callList.getActiveOrBackgroundCall() != null ||
                     callList.getOutgoingCall() != null;
             mInCallActivity.dismissKeyguard(hasCall);
@@ -313,10 +322,11 @@ public class InCallPresenter implements CallList.Listener {
         } else if (callList.getOutgoingCall() != null) {
             newState = InCallState.OUTGOING;
         } else if (callList.getActiveCall() != null ||
-                callList.getBackgroundCall() != null ||
-                callList.getDisconnectedCall() != null ||
-                callList.getDisconnectingCall() != null) {
+                callList.getBackgroundCall() != null) {
             newState = InCallState.INCALL;
+        } else if (callList.getDisconnectedCall() != null ||
+                callList.getDisconnectingCall() != null) {
+            newState = InCallState.DISCONNECTING;
         }
 
         return newState;
@@ -771,6 +781,9 @@ public class InCallPresenter implements CallList.Listener {
 
         // In-call experience is showing
         INCALL,
+
+        // Like in-call, but without a connected call
+        DISCONNECTING,
 
         // User is dialing out
         OUTGOING;
