@@ -249,11 +249,6 @@ public class InCallPresenter implements CallList.Listener {
         }
 
         if (isActivityStarted()) {
-            MSimTelephonyManager tm = MSimTelephonyManager.getDefault();
-
-            if (tm.getMultiSimConfiguration() == MSimTelephonyManager.MultiSimVariants.DSDA) {
-                mInCallActivity.updateDsdaTab();
-            }
             if (newState != InCallState.DISCONNECTING) {
                 mInCallActivity.updateSystemBarTranslucency();
             }
